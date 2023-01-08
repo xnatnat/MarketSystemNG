@@ -1,4 +1,4 @@
-package br.com.newgo.spring.marketng.dtos;
+package br.com.newgo.spring.marketng.dtos.UserDtos;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

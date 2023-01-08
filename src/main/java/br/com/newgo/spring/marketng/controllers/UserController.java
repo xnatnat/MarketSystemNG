@@ -1,9 +1,8 @@
 package br.com.newgo.spring.marketng.controllers;
 
 
-import br.com.newgo.spring.marketng.dtos.CreateUserDto;
-import br.com.newgo.spring.marketng.dtos.ProductDto;
-import br.com.newgo.spring.marketng.dtos.UserDto;
+import br.com.newgo.spring.marketng.dtos.UserDtos.CreateUserDto;
+import br.com.newgo.spring.marketng.dtos.UserDtos.UserDto;
 import br.com.newgo.spring.marketng.services.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;

@@ -1,7 +1,7 @@
 package br.com.newgo.spring.marketng.controllers;
 
-import br.com.newgo.spring.marketng.dtos.MarketListDto;
-import br.com.newgo.spring.marketng.dtos.MarketListWithIdDto;
+import br.com.newgo.spring.marketng.dtos.MarketListDtos.MarketListDto;
+import br.com.newgo.spring.marketng.dtos.MarketListDtos.MarketListWithIdDto;
 import br.com.newgo.spring.marketng.services.ProductListService;
 import br.com.newgo.spring.marketng.services.ProductService;
 import br.com.newgo.spring.marketng.services.MarketListService;

@@ -1,7 +1,7 @@
 package br.com.newgo.spring.marketng.controllers;
 
-import br.com.newgo.spring.marketng.dtos.ProductDto;
-import br.com.newgo.spring.marketng.dtos.ProductStatusDto;
+import br.com.newgo.spring.marketng.dtos.ProductDtos.ProductDto;
+import br.com.newgo.spring.marketng.dtos.ProductDtos.ProductStatusDto;
 import br.com.newgo.spring.marketng.services.ProductService;
 import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.validation.Valid;

@@ -1,4 +1,4 @@
-package br.com.newgo.spring.marketng.dtos;
+package br.com.newgo.spring.marketng.dtos.ProductDtos;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;

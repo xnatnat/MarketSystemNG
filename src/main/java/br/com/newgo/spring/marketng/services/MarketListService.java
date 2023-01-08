@@ -1,7 +1,7 @@
 package br.com.newgo.spring.marketng.services;
 
-import br.com.newgo.spring.marketng.dtos.MarketListDto;
-import br.com.newgo.spring.marketng.dtos.MarketListWithIdDto;
+import br.com.newgo.spring.marketng.dtos.MarketListDtos.MarketListDto;
+import br.com.newgo.spring.marketng.dtos.MarketListDtos.MarketListWithIdDto;
 import br.com.newgo.spring.marketng.exceptions.ResourceNotFoundException;
 import br.com.newgo.spring.marketng.models.MarketList;
 import br.com.newgo.spring.marketng.repositories.MarketListRepository;

@@ -30,4 +30,8 @@ public class Product extends BaseEntity {
 
     @OneToMany(mappedBy = "product")
     private List<ProductList> productLists;
+
+    @ManyToMany(fetch = FetchType.LAZY,
+            mappedBy = "products")
+    private List<Category> categories;
 }

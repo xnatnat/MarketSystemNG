@@ -1,5 +1,6 @@
-package br.com.newgo.spring.marketng.dtos;
+package br.com.newgo.spring.marketng.dtos.MarketListDtos;
 
+import br.com.newgo.spring.marketng.dtos.ProductListDto;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;

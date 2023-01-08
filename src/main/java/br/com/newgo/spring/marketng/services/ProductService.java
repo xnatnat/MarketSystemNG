@@ -1,7 +1,7 @@
 package br.com.newgo.spring.marketng.services;
 
-import br.com.newgo.spring.marketng.dtos.ProductDto;
-import br.com.newgo.spring.marketng.dtos.ProductStatusDto;
+import br.com.newgo.spring.marketng.dtos.ProductDtos.ProductDto;
+import br.com.newgo.spring.marketng.dtos.ProductDtos.ProductStatusDto;
 import br.com.newgo.spring.marketng.exceptions.ResourceAlreadyExistsException;
 import br.com.newgo.spring.marketng.models.Product;
 import br.com.newgo.spring.marketng.repositories.ProductRepository;

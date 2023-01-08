@@ -1,7 +1,7 @@
 package br.com.newgo.spring.marketng.services;
 
-import br.com.newgo.spring.marketng.dtos.CreateUserDto;
-import br.com.newgo.spring.marketng.dtos.UserDto;
+import br.com.newgo.spring.marketng.dtos.UserDtos.CreateUserDto;
+import br.com.newgo.spring.marketng.dtos.UserDtos.UserDto;
 import br.com.newgo.spring.marketng.exceptions.ResourceAlreadyExistsException;
 import br.com.newgo.spring.marketng.exceptions.ResourceNotFoundException;
 import br.com.newgo.spring.marketng.models.User;

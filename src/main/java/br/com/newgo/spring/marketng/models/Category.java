@@ -16,11 +16,9 @@ public class Category extends BaseEntity {
     private String name;
     @Column(nullable = false)
     private String description;
+
     @ManyToMany(fetch = FetchType.LAZY,
-            cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @JoinTable(name = "product_category",
-            joinColumns = @JoinColumn(name = "category_id"),
-            inverseJoinColumns = @JoinColumn(name = "product_id"))
+            mappedBy = "categories")
     private Set<Product> products;
 
 }

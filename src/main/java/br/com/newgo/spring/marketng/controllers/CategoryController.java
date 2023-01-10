@@ -1,6 +1,6 @@
 package br.com.newgo.spring.marketng.controllers;
 
-import br.com.newgo.spring.marketng.dtos.CategoryDto;
+import br.com.newgo.spring.marketng.dtos.CategoryDtos.CategoryDto;
 import br.com.newgo.spring.marketng.services.CategoryService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +23,7 @@ public class CategoryController {
     @PostMapping
     public ResponseEntity<CategoryDto> save(@Valid @RequestBody CategoryDto categoryDto,
                                             UriComponentsBuilder uriComponentsBuilder){
-        var categoryData = categoryService.saveCategory(categoryDto);
+        var categoryData = categoryService.requestSaveCategory(categoryDto);
         var uri = uriComponentsBuilder.path("/api/v1/categories/{id}").buildAndExpand(categoryData.getId()).toUri();
         return ResponseEntity.created(uri).body(categoryData);
     }

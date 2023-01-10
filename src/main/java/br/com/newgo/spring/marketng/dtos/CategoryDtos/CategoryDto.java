@@ -1,4 +1,4 @@
-package br.com.newgo.spring.marketng.dtos;
+package br.com.newgo.spring.marketng.dtos.CategoryDtos;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
@@ -11,7 +11,6 @@ import java.util.UUID;
 @Getter
 @Setter
 public class CategoryDto {
-
     private UUID id;
     @NotBlank
     @JsonProperty("nome")

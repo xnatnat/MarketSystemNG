@@ -10,20 +10,14 @@ import br.com.newgo.spring.marketng.repositories.ProductRepository;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Service;
 import br.com.newgo.spring.marketng.exceptions.ResourceNotFoundException;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
-
 @Service
 public class ProductService {
     final ProductRepository productRepository;
@@ -31,7 +25,10 @@ public class ProductService {
     final StorageService storageService;
     final CategoryService categoryService;
 
-    public ProductService(ProductRepository productRepository, ModelMapper modelMapper, StorageService storageService, CategoryService categoryService) {
+    public ProductService(ProductRepository productRepository,
+                          ModelMapper modelMapper,
+                          StorageService storageService,
+                          CategoryService categoryService) {
         this.productRepository = productRepository;
         this.modelMapper = modelMapper;
         this.storageService = storageService;
@@ -62,19 +59,14 @@ public class ProductService {
         return productRepository.findAll(pageable);
     }
     public Page<ReturnProductDto> findAllAndReturnDto(Pageable pageable) {
-        List<ReturnProductDto> returnProductDtos = productListToDtoOrThrowIfIsEmpty(findAll(pageable).getContent());
-        return new PageImpl<>(
-                returnProductDtos,
-                pageable,
-                returnProductDtos.size()
-                );
+        return productListToDto(findAll(pageable));
     }
 
-    private List<ReturnProductDto> productListToDtoOrThrowIfIsEmpty(List<Product> products){
+    private Page<ReturnProductDto> productListToDto(Page<Product> products) {
         if (products.isEmpty()) {
             throw new ResourceNotFoundException("No product found.");
         }
-        return products.stream().map(this::mapToDto).collect(Collectors.toList());
+        return products.map(this::mapToDto);
     }
 
     public ReturnProductDto findProductAndReturnDto(UUID id) {
@@ -94,20 +86,22 @@ public class ProductService {
         return productRepository.findById(id);
     }
 
-    public List<Product> findByNameContaining(String name) {
-        return productRepository.findByNameContainingIgnoreCase(name);
+    public Page<Product> findByNameContaining(String name, Pageable pageable) {
+        return productRepository.findByNameContainingIgnoreCase(name, pageable);
     }
 
-    public List<ReturnProductDto> findByNameAndReturnDto(String name) {
-        return productListToDtoOrThrowIfIsEmpty(findByNameContaining(name));
+    public Page<ReturnProductDto> findByNameAndReturnDto(String name, Pageable pageable) {
+        return productListToDto(
+                findByNameContaining(name, pageable));
     }
 
-    public List<Product> findByDescriptionContaining(String description) {
-        return productRepository.findByDescriptionContainingIgnoreCase(description);
+    public Page<Product> findByDescriptionContaining(String description, Pageable pageable) {
+        return productRepository.findByDescriptionContainingIgnoreCase(description, pageable);
     }
 
-    public List<ReturnProductDto> findByDescriptionAndReturnDto(String description) {
-        return productListToDtoOrThrowIfIsEmpty(findByDescriptionContaining(description));
+    public Page<ReturnProductDto> findByDescriptionAndReturnDto(String description, Pageable pageable) {
+        return productListToDto(
+                findByDescriptionContaining(description, pageable));
     }
 
     public boolean existsByUpc(String upc) {

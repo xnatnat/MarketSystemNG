@@ -83,7 +83,7 @@ public class CategoryService {
     public CategoryDto updateCategory(UUID id, CategoryDto categoryDto) {
         var category = findCategoryOrThrow(id);
         category.setName(categoryDto.getName());
-        category.setDescription(category.getDescription());
+        category.setDescription(categoryDto.getDescription());
         return mapToDto(save(category));
     }
 

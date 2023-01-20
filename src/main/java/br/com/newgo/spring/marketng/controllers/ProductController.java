@@ -45,7 +45,7 @@ public class ProductController {
 
     @GetMapping
     public ResponseEntity<Page<ReturnProductDto>> getAll(
-            @PageableDefault(sort = "cup", direction = Sort.Direction.ASC) Pageable pageable){
+            @PageableDefault(sort = "upc", direction = Sort.Direction.ASC) Pageable pageable){
         return ResponseEntity.ok(productService.findAllAndReturnDto(pageable));
     }
 
@@ -55,13 +55,17 @@ public class ProductController {
     }
 
     @GetMapping("/name/{name}")
-    public ResponseEntity<List<ReturnProductDto>> getByName(@PathVariable(value = "name") String name){
-        return ResponseEntity.ok(productService.findByNameAndReturnDto(name));
+    public ResponseEntity<Page<ReturnProductDto>> getByName(
+            @PageableDefault(sort = "cup", direction = Sort.Direction.ASC) Pageable pageable,
+            @PathVariable(value = "name") String name){
+        return ResponseEntity.ok(productService.findByNameAndReturnDto(name, pageable));
     }
 
     @GetMapping("/description/{description}")
-    public ResponseEntity<List<ReturnProductDto>> getByDescription(@PathVariable(value = "description") String description){
-        return ResponseEntity.ok(productService.findByDescriptionAndReturnDto(description));
+    public ResponseEntity<Page<ReturnProductDto>> getByDescription(
+            @PageableDefault(sort = "cup", direction = Sort.Direction.ASC) Pageable pageable,
+            @PathVariable(value = "description") String description){
+        return ResponseEntity.ok(productService.findByDescriptionAndReturnDto(description, pageable));
     }
 
     @DeleteMapping("/{upc}")

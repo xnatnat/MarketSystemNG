@@ -1,32 +1,38 @@
 package br.com.newgo.spring.marketng.services;
 
-import br.com.newgo.spring.marketng.dtos.ProductDtos.ProductDto;
-import br.com.newgo.spring.marketng.dtos.ProductDtos.ProductStatusDto;
+import br.com.newgo.spring.marketng.dtos.CategoryDtos.CategoryIdDto;
+import br.com.newgo.spring.marketng.dtos.ProductDtos.*;
 import br.com.newgo.spring.marketng.exceptions.ResourceAlreadyExistsException;
 import br.com.newgo.spring.marketng.models.Product;
 import br.com.newgo.spring.marketng.repositories.ProductRepository;
+import br.com.newgo.spring.marketng.specifications.*;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import br.com.newgo.spring.marketng.exceptions.ResourceNotFoundException;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
-
 @Service
 public class ProductService {
     final ProductRepository productRepository;
     final ModelMapper modelMapper;
     final StorageService storageService;
+    final CategoryService categoryService;
 
-    public ProductService(ProductRepository productRepository, ModelMapper modelMapper, StorageService storageService) {
+    public ProductService(ProductRepository productRepository,
+                          ModelMapper modelMapper,
+                          StorageService storageService,
+                          CategoryService categoryService) {
         this.productRepository = productRepository;
         this.modelMapper = modelMapper;
         this.storageService = storageService;
+        this.categoryService = categoryService;
     }
 
     @Transactional
@@ -34,73 +40,54 @@ public class ProductService {
         return productRepository.save(product);
     }
 
-    public ProductDto saveAndReturnDto(Product product) {
-        return mapToDto(save(product));
+    public ReturnProductDto requestSaveProduct(CreateProductDto createProductDto) {
+        throwIfProductExists(createProductDto.getUpc());
+        return mapToDto(
+                save(
+                        mapToProduct(createProductDto)));
     }
 
-    public ProductDto saveProduct(ProductDto productDto) {
-        throwIfProductExists(productDto.getUpc());
-        return saveAndReturnDto(mapToProduct(productDto));
-    }
-
-    public ProductDto saveImage(MultipartFile image, String cup) throws IOException {
-        var product = findProductOrThrow(cup);
+    public ReturnProductDto saveImage(MultipartFile image, String upc) throws IOException {
+        var product = findProductOrThrow(upc);
         product.setImageName(storageService.storeFile(image));
-        return saveAndReturnDto(product);
+        return mapToDto(
+                save(
+                        product));
     }
 
-    public List<Product> findAll(){
-        return productRepository.findAll();
+    public Page<Product> findAll(Pageable pageable){
+        return productRepository.findAll(pageable);
     }
-    public List<ProductDto> findAllAndReturnDto() {
-        return productListToDtoOrThrowIfIsEmpty(findAll());
+    public Page<ReturnProductDto> findAllAndReturnDto(Pageable pageable) {
+        return productListToDto(findAll(pageable));
     }
 
-    private List<ProductDto> productListToDtoOrThrowIfIsEmpty(List<Product> products){
+    private Page<ReturnProductDto> productListToDto(Page<Product> products) {
         if (products.isEmpty()) {
             throw new ResourceNotFoundException("No product found.");
         }
-        return products.stream().map(this::mapToDto).collect(Collectors.toList());
+        return products.map(this::mapToDto);
     }
-
-    public ProductDto findProductAndReturnDto(UUID id) {
-        return mapToDto(findProductOrThrow(id));
-    }
-    public ProductDto findProductAndReturnDto(String upc) {
+    public ReturnProductDto findProductAndReturnDto(String upc) {
         return mapToDto(findProductOrThrow(upc));
     }
 
-
-    private Product findProductOrThrow(UUID id) {
-        Optional<Product> product = findById(id);
-        return product.orElseThrow(
-                () -> new ResourceNotFoundException("Product not found."));
+    public Page<ProductRepresentationDto> findByFiltersAndReturnDto(ProductFiltersDto productFiltersDto, Pageable pageable) {
+        Specification<Product> specification = new SpecificationBuilder(productFiltersDto).build();
+        return productListToRepresentationDto(
+                productRepository.findAll(specification, pageable));
     }
 
-    public Optional<Product> findById(UUID id) {
-        return productRepository.findById(id);
-    }
-
-    public List<Product> findByNameContaining(String name) {
-        return productRepository.findByNameContainingIgnoreCase(name);
-    }
-
-    public List<ProductDto> findByNameAndReturnDto(String name) {
-        return productListToDtoOrThrowIfIsEmpty(findByNameContaining(name));
-    }
-
-    public List<Product> findByDescriptionContaining(String description) {
-        return productRepository.findByDescriptionContainingIgnoreCase(description);
-    }
-
-    public List<ProductDto> findByDescriptionAndReturnDto(String description) {
-        return productListToDtoOrThrowIfIsEmpty(findByDescriptionContaining(description));
+    private Page<ProductRepresentationDto> productListToRepresentationDto(Page<Product> products) {
+        if (products.isEmpty()) {
+            throw new ResourceNotFoundException("No product found.");
+        }
+        return products.map(this::mapToRepresentationDto);
     }
 
     public boolean existsByUpc(String upc) {
         return productRepository.existsByUpc(upc);
     }
-
 
     public Optional<Product> findByUpc(String productUpc) {
         return productRepository.findByUpc(productUpc);
@@ -121,27 +108,44 @@ public class ProductService {
     public void delete(String upc) {
         productRepository.delete(findProductOrThrow(upc));
     }
-
-
-    public ProductDto updateProduct(String cup, ProductDto productDto){
-        var productData = findProductOrThrow(cup);
-        var productUpdated = mapToProduct(productDto);
+    
+    public ReturnProductDto updateProduct(String upc, CreateProductDto createProductDto){
+        var productData = findProductOrThrow(upc);
+        var productUpdated = mapToProduct(createProductDto);
         productUpdated.setId(productData.getId());
         productUpdated.setImageName(productData.getImageName());
-        return saveAndReturnDto(productUpdated);
+        return mapToDto(
+                save(
+                        productUpdated));
     }
 
-    public ProductDto updateProductStatus(String cup, ProductStatusDto productStatusDto){
-        var product = findProductOrThrow(cup);
+    public ReturnProductDto updateProductStatus(String upc, ProductStatusDto productStatusDto){
+        var product = findProductOrThrow(upc);
         product.setIsActive(productStatusDto.getIsActive());
-        return saveAndReturnDto(product);
+        return mapToDto(
+                save(
+                        product));
     }
 
-    private ProductDto mapToDto(Product product) {
-        return modelMapper.map(product, ProductDto.class);
+    public ReturnProductDto updateProductCategories(String upc, CategoryIdDto categoryIdDto) {
+        var product = findProductOrThrow(upc);
+        product.setCategories(categoryService.getCategoriesById(categoryIdDto.getCategories()));
+        return mapToDto(
+                save(
+                        product));
     }
-    private Product mapToProduct(ProductDto productDto) {
-        return modelMapper.map(productDto, Product.class);
+    
+    private ReturnProductDto mapToDto(Product product) {
+        return modelMapper.map(product, ReturnProductDto.class);
     }
+
+    private ProductRepresentationDto mapToRepresentationDto(Product product) {
+        return modelMapper.map(product, ProductRepresentationDto.class);
+    }
+
+    private Product mapToProduct(CreateProductDto createProductDto) {
+        return modelMapper.map(createProductDto, Product.class);
+    }
+
 
 }

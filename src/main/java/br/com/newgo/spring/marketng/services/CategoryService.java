@@ -1,7 +1,6 @@
 package br.com.newgo.spring.marketng.services;
 
-import br.com.newgo.spring.marketng.dtos.CategoryDto;
-import br.com.newgo.spring.marketng.dtos.ProductDtos.ProductDto;
+import br.com.newgo.spring.marketng.dtos.CategoryDtos.CategoryDto;
 import br.com.newgo.spring.marketng.exceptions.ResourceNotFoundException;
 import br.com.newgo.spring.marketng.models.Category;
 import br.com.newgo.spring.marketng.repositories.CategoryRepository;
@@ -11,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -25,12 +25,11 @@ public class CategoryService {
         this.modelMapper = modelMapper;
     }
 
-    public CategoryDto saveCategory(CategoryDto categoryDto) {
-        return saveAndReturnDto(mapToCategory(categoryDto));
-    }
-
-    public CategoryDto saveAndReturnDto(Category category){
-        return mapToDto(save(category));
+    public CategoryDto requestSaveCategory(CategoryDto categoryDto) {
+        return mapToDto(
+                save(
+                        mapToCategory(
+                                categoryDto)));
     }
 
     @Transactional
@@ -76,6 +75,7 @@ public class CategoryService {
         return categoryRepository.findById(id);
     }
 
+    @Transactional
     public void delete(UUID id) {
         categoryRepository.delete(findCategoryOrThrow(id));
     }
@@ -83,7 +83,21 @@ public class CategoryService {
     public CategoryDto updateCategory(UUID id, CategoryDto categoryDto) {
         var category = findCategoryOrThrow(id);
         category.setName(categoryDto.getName());
-        category.setDescription(category.getDescription());
-        return saveAndReturnDto(category);
+        category.setDescription(categoryDto.getDescription());
+        return mapToDto(save(category));
+    }
+
+    public Set<Category> getCategoriesById(Set<UUID> categoryIds) {
+        return findAllByIdOrThrow(categoryIds)
+                .stream()
+                .filter(category -> categoryIds.contains(category.getId()))
+                .collect(Collectors.toSet());
+    }
+
+    public List<Category> findAllByIdOrThrow(Set<UUID> categoryIds){
+        var categories = categoryRepository.findAllById(categoryIds);
+        if (categories.size() < categoryIds.size())
+            throw new ResourceNotFoundException("Some categories were not found.");
+        return categories;
     }
 }

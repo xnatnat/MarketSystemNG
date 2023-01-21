@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "sng_products")
@@ -29,9 +30,12 @@ public class Product extends BaseEntity {
     private Boolean isActive;
 
     @OneToMany(mappedBy = "product")
-    private List<ProductList> productLists;
+    private Set<ProductList> productLists;
 
     @ManyToMany(fetch = FetchType.LAZY,
-            mappedBy = "products")
-    private List<Category> categories;
+            cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinTable(name = "product_category",
+            joinColumns = @JoinColumn(name = "product_id"),
+            inverseJoinColumns = @JoinColumn(name = "category_id"))
+    private Set<Category> categories;
 }

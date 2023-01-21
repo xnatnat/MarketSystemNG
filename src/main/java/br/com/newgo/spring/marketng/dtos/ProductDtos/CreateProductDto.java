@@ -7,9 +7,12 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Set;
+import java.util.UUID;
+
 @Getter
 @Setter
-public class ProductDto {
+public class CreateProductDto {
     @NotBlank
     @JsonProperty("nome")
     private String name;
@@ -34,4 +37,7 @@ public class ProductDto {
     private Boolean isActive;
     @JsonProperty("imagemNome")
     private String imageName;
+
+    @JsonProperty("categorias")
+    private Set<String> categories;
 }

@@ -1,16 +1,16 @@
 package br.com.newgo.spring.marketng.services;
 
 import br.com.newgo.spring.marketng.dtos.CategoryDtos.CategoryIdDto;
-import br.com.newgo.spring.marketng.dtos.ProductDtos.CreateProductDto;
-import br.com.newgo.spring.marketng.dtos.ProductDtos.ProductStatusDto;
-import br.com.newgo.spring.marketng.dtos.ProductDtos.ReturnProductDto;
+import br.com.newgo.spring.marketng.dtos.ProductDtos.*;
 import br.com.newgo.spring.marketng.exceptions.ResourceAlreadyExistsException;
 import br.com.newgo.spring.marketng.models.Product;
 import br.com.newgo.spring.marketng.repositories.ProductRepository;
+import br.com.newgo.spring.marketng.specifications.*;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import br.com.newgo.spring.marketng.exceptions.ResourceNotFoundException;
 import org.springframework.web.multipart.MultipartFile;
@@ -68,40 +68,21 @@ public class ProductService {
         }
         return products.map(this::mapToDto);
     }
-
-    public ReturnProductDto findProductAndReturnDto(UUID id) {
-        return mapToDto(findProductOrThrow(id));
-    }
     public ReturnProductDto findProductAndReturnDto(String upc) {
         return mapToDto(findProductOrThrow(upc));
     }
 
-    private Product findProductOrThrow(UUID id) {
-        Optional<Product> product = findById(id);
-        return product.orElseThrow(
-                () -> new ResourceNotFoundException("Product not found."));
+    public Page<ProductRepresentationDto> findByFiltersAndReturnDto(ProductFiltersDto productFiltersDto, Pageable pageable) {
+        Specification<Product> specification = new SpecificationBuilder(productFiltersDto).build();
+        return productListToRepresentationDto(
+                productRepository.findAll(specification, pageable));
     }
 
-    public Optional<Product> findById(UUID id) {
-        return productRepository.findById(id);
-    }
-
-    public Page<Product> findByNameContaining(String name, Pageable pageable) {
-        return productRepository.findByNameContainingIgnoreCase(name, pageable);
-    }
-
-    public Page<ReturnProductDto> findByNameAndReturnDto(String name, Pageable pageable) {
-        return productListToDto(
-                findByNameContaining(name, pageable));
-    }
-
-    public Page<Product> findByDescriptionContaining(String description, Pageable pageable) {
-        return productRepository.findByDescriptionContainingIgnoreCase(description, pageable);
-    }
-
-    public Page<ReturnProductDto> findByDescriptionAndReturnDto(String description, Pageable pageable) {
-        return productListToDto(
-                findByDescriptionContaining(description, pageable));
+    private Page<ProductRepresentationDto> productListToRepresentationDto(Page<Product> products) {
+        if (products.isEmpty()) {
+            throw new ResourceNotFoundException("No product found.");
+        }
+        return products.map(this::mapToRepresentationDto);
     }
 
     public boolean existsByUpc(String upc) {
@@ -157,8 +138,14 @@ public class ProductService {
     private ReturnProductDto mapToDto(Product product) {
         return modelMapper.map(product, ReturnProductDto.class);
     }
+
+    private ProductRepresentationDto mapToRepresentationDto(Product product) {
+        return modelMapper.map(product, ProductRepresentationDto.class);
+    }
+
     private Product mapToProduct(CreateProductDto createProductDto) {
         return modelMapper.map(createProductDto, Product.class);
     }
-    
+
+
 }

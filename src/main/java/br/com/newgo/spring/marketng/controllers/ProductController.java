@@ -1,9 +1,7 @@
 package br.com.newgo.spring.marketng.controllers;
 
 import br.com.newgo.spring.marketng.dtos.CategoryDtos.CategoryIdDto;
-import br.com.newgo.spring.marketng.dtos.ProductDtos.CreateProductDto;
-import br.com.newgo.spring.marketng.dtos.ProductDtos.ProductStatusDto;
-import br.com.newgo.spring.marketng.dtos.ProductDtos.ReturnProductDto;
+import br.com.newgo.spring.marketng.dtos.ProductDtos.*;
 import br.com.newgo.spring.marketng.services.ProductService;
 import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.validation.Valid;
@@ -54,18 +52,11 @@ public class ProductController {
         return ResponseEntity.ok(productService.findProductAndReturnDto(upc));
     }
 
-    @GetMapping("/name/{name}")
-    public ResponseEntity<Page<ReturnProductDto>> getByName(
-            @PageableDefault(sort = "cup", direction = Sort.Direction.ASC) Pageable pageable,
-            @PathVariable(value = "name") String name){
-        return ResponseEntity.ok(productService.findByNameAndReturnDto(name, pageable));
-    }
-
-    @GetMapping("/description/{description}")
-    public ResponseEntity<Page<ReturnProductDto>> getByDescription(
-            @PageableDefault(sort = "cup", direction = Sort.Direction.ASC) Pageable pageable,
-            @PathVariable(value = "description") String description){
-        return ResponseEntity.ok(productService.findByDescriptionAndReturnDto(description, pageable));
+    @GetMapping("/search")
+    public ResponseEntity<Page<ProductRepresentationDto>> getByFilters(
+            @PageableDefault(sort = "upc", direction = Sort.Direction.ASC) Pageable pageable,
+            @ModelAttribute ProductFiltersDto productFiltersDto){
+        return ResponseEntity.ok(productService.findByFiltersAndReturnDto(productFiltersDto, pageable));
     }
 
     @DeleteMapping("/{upc}")

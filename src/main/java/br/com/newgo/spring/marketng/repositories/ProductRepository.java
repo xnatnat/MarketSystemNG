@@ -15,9 +15,6 @@ import java.util.UUID;
 public interface ProductRepository extends JpaRepository<Product, UUID>,
                                             JpaSpecificationExecutor<Product> {
     boolean existsByUpc(String upc);
-    Page<Product> findByDescriptionContainingIgnoreCase(String description, Pageable pageable);
-
-    Page<Product> findByNameContainingIgnoreCase(String name, Pageable pageable);
     Optional<Product> findByUpc(String productUpc);
 
 }

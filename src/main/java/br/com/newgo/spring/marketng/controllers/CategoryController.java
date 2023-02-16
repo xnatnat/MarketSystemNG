@@ -1,6 +1,6 @@
 package br.com.newgo.spring.marketng.controllers;
 
-import br.com.newgo.spring.marketng.dtos.CategoryDtos.CategoryDto;
+import br.com.newgo.spring.marketng.dtos.CategoryDtos.CreateCategoryDto;
 import br.com.newgo.spring.marketng.services.CategoryService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -21,20 +21,20 @@ public class CategoryController {
     }
 
     @PostMapping
-    public ResponseEntity<CategoryDto> save(@Valid @RequestBody CategoryDto categoryDto,
-                                            UriComponentsBuilder uriComponentsBuilder){
-        var categoryData = categoryService.requestSaveCategory(categoryDto);
+    public ResponseEntity<CreateCategoryDto> save(@Valid @RequestBody CreateCategoryDto createCategoryDto,
+                                                  UriComponentsBuilder uriComponentsBuilder){
+        var categoryData = categoryService.requestSaveCategory(createCategoryDto);
         var uri = uriComponentsBuilder.path("/api/v1/categories/{id}").buildAndExpand(categoryData.getId()).toUri();
         return ResponseEntity.created(uri).body(categoryData);
     }
 
     @GetMapping
-    public ResponseEntity<List<CategoryDto>> getAll(){
+    public ResponseEntity<List<CreateCategoryDto>> getAll(){
         return ResponseEntity.ok(categoryService.findAllAndReturnDto());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CategoryDto> getById(@PathVariable(value = "id") UUID id){
+    public ResponseEntity<CreateCategoryDto> getById(@PathVariable(value = "id") UUID id){
         return ResponseEntity.ok(categoryService.findCategoryAndReturnDto(id));
     }
 
@@ -45,8 +45,8 @@ public class CategoryController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<CategoryDto> update(@PathVariable(value = "id") UUID id,
-                                              @RequestBody @Valid CategoryDto categoryDto){
-        return ResponseEntity.ok(categoryService.updateCategory(id, categoryDto));
+    public ResponseEntity<CreateCategoryDto> update(@PathVariable(value = "id") UUID id,
+                                                    @RequestBody @Valid CreateCategoryDto createCategoryDto){
+        return ResponseEntity.ok(categoryService.updateCategory(id, createCategoryDto));
     }
 }

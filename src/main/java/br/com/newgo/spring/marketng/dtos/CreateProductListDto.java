@@ -9,7 +9,7 @@ import java.util.UUID;
 
 @Getter
 @Setter
-public class ProductListDto {
+public class CreateProductListDto {
     private UUID id;
     @NotNull
     @JsonProperty("produtoCup")

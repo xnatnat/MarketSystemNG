@@ -10,7 +10,7 @@ import java.util.UUID;
 
 @Getter
 @Setter
-public class CategoryIdDto {
+public class ReturnCategoryIdDto {
     @NotNull
     @JsonProperty("categorias")
     private Set<UUID> categories;

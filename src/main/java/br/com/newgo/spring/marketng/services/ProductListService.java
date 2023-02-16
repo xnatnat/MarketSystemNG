@@ -1,7 +1,6 @@
 package br.com.newgo.spring.marketng.services;
 
-import br.com.newgo.spring.marketng.dtos.ProductListDto;
-import br.com.newgo.spring.marketng.exceptions.ResourceNotFoundException;
+import br.com.newgo.spring.marketng.dtos.CreateProductListDto;
 import br.com.newgo.spring.marketng.models.ProductList;
 import br.com.newgo.spring.marketng.models.MarketList;
 import br.com.newgo.spring.marketng.repositories.ProductListRepository;
@@ -26,7 +25,7 @@ public class ProductListService {
         return productListRepository.save(productList);
     }
 
-    public Set<ProductList> saveProductListAndReturnProductList(MarketList marketList, Set<ProductListDto> products) {
+    public Set<ProductList> saveProductListAndReturnProductList(MarketList marketList, Set<CreateProductListDto> products) {
         if (marketList.getProducts() != null) {
             deleteProductListsNotIncludedInNewList(marketList.getProducts(), products);
         }
@@ -37,15 +36,16 @@ public class ProductListService {
                     if (item.getId() == null) {
                         return createProductList(item, marketList);
                     } else {
-                        return updateProductListIfQuantityChanged(item, marketList);
+                        return updateProductListIfQuantityChanged(item);
                     }
                 })
                 .forEach(productLists::add);
+
         return productLists;
     }
 
     private Set<ProductList> deleteProductListsNotIncludedInNewList(Set<ProductList> oldProductList,
-                                                                    Set<ProductListDto> newProductList) {
+                                                                    Set<CreateProductListDto> newProductList) {
         // Remove os itens que não estão presentes na nova lista de produtos
         oldProductList.removeIf(oldP -> {
             boolean isContained = newProductList.stream()
@@ -62,24 +62,26 @@ public class ProductListService {
         productListRepository.delete(productList);
     }
 
-    private ProductList createProductList(ProductListDto item, MarketList marketList){
-        var product = productService.findProductOrThrow(item.getProductUpc());
-        return save(new ProductList(product, item.getQuantity(), marketList));
+    private ProductList createProductList(CreateProductListDto item, MarketList marketList){
+        var product = productService.findByUpc(item.getProductUpc()).orElseThrow();
+        return save(new ProductList(product,
+                                    item.getQuantity(),
+                                    calculateTotal(product.getPrice(), item.getQuantity()),
+                                    marketList));
     }
 
-    private ProductList updateProductListIfQuantityChanged(ProductListDto item, MarketList marketList) {
-        var productList = findOrThrow(item.getId());
+    private Double calculateTotal(Double price, Long quantity){
+        return price * quantity;
+    }
+
+    private ProductList updateProductListIfQuantityChanged(CreateProductListDto item) {
+        var productList = findById(item.getId()).orElseThrow();
         if (productList.getQuantity() != item.getQuantity()) {
             productList.setQuantity(item.getQuantity());
+            productList.setTotal(calculateTotal(productList.getProduct().getPrice(), productList.getQuantity()));
             return save(productList);
         }
         return productList;
-    }
-
-    private ProductList findOrThrow(UUID id) {
-        Optional<ProductList> productList = findById(id);
-        return productList.orElseThrow(
-                () -> new ResourceNotFoundException("ProductList not found."));
     }
 
     protected Optional<ProductList> findById(UUID id){

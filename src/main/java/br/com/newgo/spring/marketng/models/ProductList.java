@@ -17,7 +17,8 @@ public class ProductList extends BaseEntity {
     private Product product;
     @Column(nullable = false)
     private Long quantity;
-
+    @Column(nullable = false)
+    private Double total;
     @ManyToOne
     @JoinColumn(name = "marketList_id", nullable = false)
     private MarketList marketList;

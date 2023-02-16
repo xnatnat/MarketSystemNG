@@ -24,12 +24,15 @@ public class SpecificationBuilder {
         if(filters.getCategory() != null)
             specs.add(new ProductByCategoryNameSpecification(filters.getCategory()));
 
-        return specs.stream()
+        Specification<Product> orSpecification = specs.stream()
                 .reduce(Specification::or)
                 .orElse(Specification.where(null));
-//
-//        if(filters.getPriceMin() != null || filters.getPriceMax() != null)
-//            specs.add(new ProductByPriceSpecification(filters.getPriceMin(), filters.getPriceMax()));
 
+        if(filters.getPriceMin() != null || filters.getPriceMax() != null) {
+            Specification<Product> priceSpecification =
+                    new ProductByPriceSpecification(filters.getPriceMin(), filters.getPriceMax());
+            orSpecification = orSpecification.and(priceSpecification);
+        }
+        return orSpecification;
     }
 }

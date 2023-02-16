@@ -1,6 +1,6 @@
 package br.com.newgo.spring.marketng.controllers;
 
-import br.com.newgo.spring.marketng.dtos.CategoryDtos.CategoryIdDto;
+import br.com.newgo.spring.marketng.dtos.CategoryDtos.ReturnCategoryIdDto;
 import br.com.newgo.spring.marketng.dtos.ProductDtos.*;
 import br.com.newgo.spring.marketng.services.ProductService;
 import jakarta.servlet.annotation.MultipartConfig;
@@ -15,7 +15,6 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/products")
@@ -85,7 +84,7 @@ public class ProductController {
 
     @PatchMapping({"/categories/{upc}"})
     public ResponseEntity<ReturnProductDto> updateCategories(@PathVariable(value = "upc") String upc,
-                                                             @RequestBody CategoryIdDto categoryIdDto){
-        return ResponseEntity.ok(productService.updateProductCategories(upc, categoryIdDto));
+                                                             @RequestBody ReturnCategoryIdDto returnCategoryIdDto){
+        return ResponseEntity.ok(productService.updateProductCategories(upc, returnCategoryIdDto));
     }
 }

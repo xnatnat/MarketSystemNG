@@ -1,10 +1,12 @@
 package br.com.newgo.spring.marketng.services;
 
-import br.com.newgo.spring.marketng.dtos.MarketListDtos.MarketListDto;
-import br.com.newgo.spring.marketng.dtos.MarketListDtos.MarketListWithIdDto;
-import br.com.newgo.spring.marketng.exceptions.ResourceNotFoundException;
+import br.com.newgo.spring.marketng.dtos.MarketListDtos.CreateMarketListDto;
+import br.com.newgo.spring.marketng.dtos.MarketListDtos.MarketListTotalDto;
+import br.com.newgo.spring.marketng.dtos.MarketListDtos.ReturnMarketListDto;
 import br.com.newgo.spring.marketng.models.MarketList;
+import br.com.newgo.spring.marketng.models.ProductList;
 import br.com.newgo.spring.marketng.repositories.MarketListRepository;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -35,46 +37,54 @@ public class MarketListService {
         return marketListRepository.save(marketList);
     }
 
-    //TODO: todos os metodos que estão retornando DTO direto devem virar dois metodos, um que é chamado pelo controller e que salva e retorna dto e um que salva e retorna o objeto do banco
-    public MarketListWithIdDto saveAndReturnDtoWithId(MarketList marketList) {
+    public ReturnMarketListDto saveAndReturnDtoWithId(MarketList marketList) {
         return mapToDto(save(marketList));
     }
 
-    public MarketListWithIdDto saveMarketList(MarketListDto marketListDto){
-        var user = userService.findUserOrThrow(marketListDto.getUserId());
-        var marketList = new MarketList();
-        marketList.setUser(user);
-        marketList.setRegistrationDate(LocalDateTime.now(ZoneId.of("UTC")));
-        marketList = save(marketList);
+    public ReturnMarketListDto saveMarketList(CreateMarketListDto createMarketListDto){
+        MarketList marketList = createMarketList(createMarketListDto.getUserId());
         marketList.setProducts(
                 productListService.saveProductListAndReturnProductList(
-                        marketList, marketListDto.getProducts()));
-        return saveAndReturnDtoWithId(marketList);
+                        marketList, createMarketListDto.getProducts()));
+        return saveAndReturnDtoWithId(
+                calculateMarketListValue(marketList));
+    }
+
+    private MarketList createMarketList(UUID userId){
+        return save(new MarketList(
+                LocalDateTime.now(ZoneId.of("UTC")),
+                null,
+                userService.findById(userId).orElseThrow(),
+                0.0));
+    }
+
+    private MarketList calculateMarketListValue(MarketList marketList){
+        marketList.setTotal(
+                marketList.getProducts()
+                .stream()
+                        .mapToDouble(ProductList::getTotal)
+                        .sum()
+        );
+        return marketList;
     }
 
     public List<MarketList> findAll(){
         return marketListRepository.findAll();
     }
 
-    public List<MarketListWithIdDto> findAllAndReturnDto() {
+    public List<ReturnMarketListDto> findAllAndReturnDto() {
         return marketListToDtoOrThrowIfIsEmpty(findAll());
     }
 
-    private List<MarketListWithIdDto> marketListToDtoOrThrowIfIsEmpty(List<MarketList> marketLists){
+    private List<ReturnMarketListDto> marketListToDtoOrThrowIfIsEmpty(List<MarketList> marketLists){
         if (marketLists.isEmpty()) {
-            throw new ResourceNotFoundException("No market list found.");
+            throw new EntityNotFoundException("No market list found.");
         }
         return marketLists.stream().map(this::mapToDto).collect(Collectors.toList());
     }
 
-    public MarketListDto findMarketListAndReturnDto(UUID id){
-        return mapToDtoWithoutId(findMarketListOrThrow(id));
-    }
-
-    private MarketList findMarketListOrThrow(UUID id) {
-        Optional<MarketList> marketList = findById(id);
-        return marketList.orElseThrow(
-                () -> new ResourceNotFoundException("MarketList not found."));
+    public CreateMarketListDto findMarketListAndReturnDto(UUID id){
+        return mapToDtoWithoutId(findById(id).orElseThrow());
     }
 
     public Optional<MarketList> findById(UUID id) {
@@ -83,32 +93,34 @@ public class MarketListService {
 
     @Transactional
     public void delete(UUID id){
-        marketListRepository.delete(findMarketListOrThrow(id));
+        marketListRepository.delete(findById(id).orElseThrow());
     }
 
 
-    public MarketListWithIdDto updateMarketListAndReturnDto(UUID id, MarketListDto marketListDto) {
-        userService.findUserOrThrow(marketListDto.getUserId());
-        var marketListData = findMarketListOrThrow(id);
+    public ReturnMarketListDto updateMarketListAndReturnDto(UUID id, CreateMarketListDto createMarketListDto) {
+        userService.findById(createMarketListDto.getUserId()).orElseThrow();
+        var marketListData = findById(id).orElseThrow();
         marketListData.setProducts(
                 productListService.saveProductListAndReturnProductList(
-                        marketListData, marketListDto.getProducts()));
+                        marketListData, createMarketListDto.getProducts()));
 
-        return saveAndReturnDtoWithId(marketListData);
+        return saveAndReturnDtoWithId(calculateMarketListValue(marketListData));
     }
 
-    private MarketListWithIdDto mapToDto(MarketList marketList) {
-        return modelMapper.map(marketList, MarketListWithIdDto.class);
+    public MarketListTotalDto findTotalByIdAndReturnDto(UUID id){
+        return mapToTotalDto(findById(id).orElseThrow());
     }
 
-    private MarketListDto mapToDtoWithoutId(MarketList marketList) {
-        return modelMapper.map(marketList, MarketListDto.class);
+    private MarketListTotalDto mapToTotalDto(MarketList marketList){
+        return modelMapper.map(marketList, MarketListTotalDto.class);
     }
 
-
-    private MarketList mapToMarketList(MarketListDto marketListDto) {
-        return modelMapper.map(marketListDto, MarketList.class);
+    private ReturnMarketListDto mapToDto(MarketList marketList) {
+        return modelMapper.map(marketList, ReturnMarketListDto.class);
     }
 
+    private CreateMarketListDto mapToDtoWithoutId(MarketList marketList) {
+        return modelMapper.map(marketList, CreateMarketListDto.class);
+    }
 }
 

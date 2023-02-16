@@ -1,7 +1,8 @@
 package br.com.newgo.spring.marketng.controllers;
 
-import br.com.newgo.spring.marketng.dtos.MarketListDtos.MarketListDto;
-import br.com.newgo.spring.marketng.dtos.MarketListDtos.MarketListWithIdDto;
+import br.com.newgo.spring.marketng.dtos.MarketListDtos.CreateMarketListDto;
+import br.com.newgo.spring.marketng.dtos.MarketListDtos.ReturnMarketListDto;
+import br.com.newgo.spring.marketng.dtos.MarketListDtos.MarketListTotalDto;
 import br.com.newgo.spring.marketng.services.ProductListService;
 import br.com.newgo.spring.marketng.services.ProductService;
 import br.com.newgo.spring.marketng.services.MarketListService;
@@ -31,21 +32,26 @@ public class MarketListController {
     }
 
     @PostMapping
-    public ResponseEntity<MarketListWithIdDto> save(@RequestBody @Valid MarketListDto marketListDto,
+    public ResponseEntity<ReturnMarketListDto> save(@RequestBody @Valid CreateMarketListDto createMarketListDto,
                                                     UriComponentsBuilder uriComponentsBuilder){
-        var marketListData = marketListService.saveMarketList(marketListDto);
+        var marketListData = marketListService.saveMarketList(createMarketListDto);
         var uri = uriComponentsBuilder.path("/api/v1/MarketList/{id}").buildAndExpand(marketListData.getId()).toUri();
         return ResponseEntity.created(uri).body(marketListData);
     }
 
     @GetMapping
-    public ResponseEntity<List<MarketListWithIdDto>> getAll(){
+    public ResponseEntity<List<ReturnMarketListDto>> getAll(){
         return ResponseEntity.ok(marketListService.findAllAndReturnDto());
     }
 //TODO getByUserId
     @GetMapping("/{id}")
-    public ResponseEntity<Object> getById(@PathVariable(value = "id") UUID id){
+    public ResponseEntity<CreateMarketListDto> getById(@PathVariable(value = "id") UUID id){
         return ResponseEntity.ok(marketListService.findMarketListAndReturnDto(id));
+    }
+
+    @GetMapping("/total/{id}")
+    public ResponseEntity<MarketListTotalDto> getTotalById(@PathVariable(value = "id") UUID id){
+        return ResponseEntity.ok(marketListService.findTotalByIdAndReturnDto(id));
     }
 
     @DeleteMapping({"/{id}"})
@@ -55,9 +61,8 @@ public class MarketListController {
     }
 
     @PutMapping({"/{id}"})
-    public ResponseEntity<Object> update(@PathVariable(value = "id") UUID id,
-                                         @RequestBody @Valid MarketListDto marketListDto){
-        return ResponseEntity.ok(marketListService.updateMarketListAndReturnDto(id, marketListDto));
-
+    public ResponseEntity<ReturnMarketListDto> update(@PathVariable(value = "id") UUID id,
+                                                      @RequestBody @Valid CreateMarketListDto createMarketListDto){
+        return ResponseEntity.ok(marketListService.updateMarketListAndReturnDto(id, createMarketListDto));
     }
 }
